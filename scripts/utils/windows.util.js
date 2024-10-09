@@ -1,5 +1,3 @@
-import {screen} from "electron";
-
 const WinLoadType = {
     FILE: 'file',
     URL: 'url'
@@ -33,31 +31,70 @@ const createConfig = (globalConfig, position) => {
     }
 }
 
-const calculateWindowPosition = (config) => {
+const calculateWindowPosition = (screen, config) => {
     const {width, height} = screen.getPrimaryDisplay().workAreaSize;
-    const {width: windowWidth, height: windowHeight, numberOfWindows: numberOfWindows} = config;
+    let {width: windowWidth, height: windowHeight, numberOfWindows: numberOfWindows} = config;
 
-    const windowWidthOffset = windowWidth + 2;
-    const windowHeightOffset = windowHeight + 2;
+    let maxRow = Math.floor(height / windowHeight);
+    let maxCol = Math.floor(width / windowWidth);
+
+    if (numberOfWindows > maxRow * maxCol) numberOfWindows = maxRow * maxCol;
+
+    maxRow += 1;
 
     const windowPositions = [];
 
     for (let i = 0; i < numberOfWindows; i++) {
-        const x = (i % 2) * windowWidthOffset;
-        const y = Math.floor(i / 2) * windowHeightOffset;
+        if (i % maxCol === 0) maxRow--;
 
-        if (x + windowWidth > width) {
-            return windowPositions;
-        }
+        const currentWidth = (i % maxCol) * windowWidth;
+        const currentHeight = maxRow * windowHeight;
 
-        if (y + windowHeight > height) {
-            return windowPositions;
-        }
-
-        windowPositions.push({x, y});
+        windowPositions.push({
+            x: currentWidth,
+            y: currentHeight
+        });
     }
+
+    console.log(windowPositions);
 
     return windowPositions;
 }
 
-export {WinLoadType, DefaultConfig, createConfig, calculateWindowPosition}
+const updateNewUrl = (win, Configuration) => {
+    const newUrl = Configuration.getRandomStartUrl();
+    win.loadURL(newUrl).then();
+}
+
+const collectEvents = (win, Configuration) => {
+    win.webContents.on('ipc-message', (event, channel) => {
+        switch (channel) {
+            case 'read-done':
+                const currentUrl = win.webContents.getURL();
+                Configuration.removeSelectedStartUrl(currentUrl);
+                updateNewUrl(win, Configuration);
+                break;
+            default:
+                break;
+        }
+    })
+}
+
+const addCookies = (win, Configuration) => {
+    win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+        details.requestHeaders['Cookie'] = Configuration.cookies;
+        callback({
+            cancel: false,
+            requestHeaders: details.requestHeaders
+        });
+    });
+}
+
+module.exports = {
+    WinLoadType,
+    DefaultConfig,
+    createConfig,
+    calculateWindowPosition,
+    collectEvents,
+    addCookies
+}

@@ -1,4 +1,4 @@
-import Config from './config.json' with { type: "json" };
+const Config = require('./config.json');
 class Configuration {
     static _instances = null;
     selectedStartUrls = [];
@@ -26,6 +26,8 @@ class Configuration {
         this.preload = Config.preload;
         this.darkTheme = Config.darkTheme;
         this.offscreen = Config.offscreen;
+        this.readingTime = Config.readingTime;
+        this.cookies = Config.cookies;
     }
 
     getRandomStartUrl() {
@@ -49,4 +51,4 @@ class Configuration {
     }
 }
 
-export default Configuration.getInstances();
+module.exports = Configuration;

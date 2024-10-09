@@ -1,16 +1,20 @@
-import {app, BrowserWindow, screen} from 'electron';
-import Configuration from './configs/config.js';
+const configuration = require('./configs/config.js');
+const {app, BrowserWindow, screen} = require('electron')
 
-import {WinLoadType, DefaultConfig, createConfig, calculateWindowPosition} from './scripts/utils/windows.util.js';
+const {
+    WinLoadType,
+    DefaultConfig,
+    createConfig,
+    calculateWindowPosition,
+    addCookies,
+    collectEvents
+} = require('./scripts/utils/windows.util.js');
 
-import path from 'node:path';
-import { fileURLToPath } from 'url';
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename)
+const Configuration = configuration.getInstances();
 
 const createWindow = (type = WinLoadType.FILE, url, config = DefaultConfig) => {
-    console.log(config);
     const win = new BrowserWindow({
         width: config.width,
         height: config.height,
@@ -20,23 +24,39 @@ const createWindow = (type = WinLoadType.FILE, url, config = DefaultConfig) => {
         autoHideMenuBar: config.autoHideMenuBar,
         webPreferences: {
             nodeIntegration: true,
-            devTools: config.devtools,
+            contextIsolation: true,
+            enableRemoteModule: true,
             preload: path.join(__dirname, config.preload),
             offscreen: config.offscreen,
         },
         darkTheme: config.darkTheme,
     })
 
-    if (type === WinLoadType.FILE) {
-        win.loadFile(url).then();
-    } else if (type === WinLoadType.URL) {
-        win.loadURL(url).then();
+    if (config.devtools) {
+        win.webContents.openDevTools();
     }
+
+    collectEvents(win, Configuration);
+
+    try {
+        if (type === WinLoadType.FILE) {
+            win.loadFile(url).then();
+        } else if (type === WinLoadType.URL) {
+            addCookies(win, Configuration);
+            win.loadURL(url).then(e => {
+                if (e.code === 'ERR_ABORTED') return;
+                throw e;
+            });
+        }
+    } catch (e) {
+        console.error(e);
+    }
+
 }
 
 app.whenReady().then(() => {
     const type = WinLoadType.URL;
-    const positions = calculateWindowPosition(Configuration);
+    const positions = calculateWindowPosition(screen, Configuration);
 
     for (let i = 0; i < positions.length; i++) {
         const url = Configuration.getRandomStartUrl();
