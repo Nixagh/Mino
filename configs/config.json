@@ -1,0 +1,16 @@
+{
+  "width": 300,
+  "height": 200,
+  "offset": 5,
+  "resizable": false,
+  "devtools": true,
+  "darkTheme": true,
+  "autoHideMenuBar": true,
+  "offscreen": false,
+  "numberOfWindows": 2,
+  "preload": "scripts/preloads/mino.preload.js",
+  "startUrl": [
+    "https://www.google.com",
+    "https://www.bing.com"
+  ]
+}
