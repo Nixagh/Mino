@@ -56,8 +56,6 @@ const calculateWindowPosition = (screen, config) => {
         });
     }
 
-    console.log(windowPositions);
-
     return windowPositions;
 }
 
@@ -67,13 +65,16 @@ const updateNewUrl = (win, Configuration) => {
 }
 
 const collectEvents = (win, Configuration) => {
-    win.webContents.on('ipc-message', (event, channel) => {
+    win.webContents.on('ipc-message', (event, channel, ...args) => {
         switch (channel) {
             case 'read-done':
                 const currentUrl = win.webContents.getURL();
                 Configuration.removeSelectedStartUrl(currentUrl);
                 updateNewUrl(win, Configuration);
                 break;
+            case 'next':
+               console.log(`${new Date().toLocaleString()} : ${args[0]}`);
+               break;
             default:
                 break;
         }

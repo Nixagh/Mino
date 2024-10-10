@@ -1,7 +1,10 @@
 const {ipcRenderer} = require('electron');
 
 document.addEventListener('DOMContentLoaded',() => {
-    let readingTime = 35;
+    // hide the bottom right corner button
+    document.querySelector("body > div.transition-all.duration-1000.ease-linear.fixed.right-3.bottom-7.z-\\[99\\].flex").style.display = 'none';
+
+    let readingTime = 40;
 
     let readFirstBtn = document.querySelector("body > main > div > div > div > div:nth-child(1) > article > div.lg\\:flex > div.lg\\:px-4.mb-4.md\\:mx-0.mx-auto.flex-1 > div.flex.flex-wrap.gap-2 > a:nth-child(1) > div");
     // let nextChapterBtn = document.querySelector("body > main > div > div.bg-black.py-2 > div > div:nth-child(2) > div.translate-y-0.transition-all.bg-slate-800.select-none.sticky.top-0.left-0.right-0.z-10.md\\:rounded-b-md.h-11 > div > div > a:nth-child(3)");
@@ -38,6 +41,7 @@ document.addEventListener('DOMContentLoaded',() => {
 
             setTimeout(() => {
                 nextChapterBtn.click();
+                ipcRenderer.send('next', location.href);
 
                 // restart interval
                 interval = setInterval(check, 1000);

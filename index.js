@@ -38,18 +38,14 @@ const createWindow = (type = WinLoadType.FILE, url, config = DefaultConfig) => {
 
     collectEvents(win, Configuration);
 
-    try {
-        if (type === WinLoadType.FILE) {
-            win.loadFile(url).then();
-        } else if (type === WinLoadType.URL) {
-            addCookies(win, Configuration);
-            win.loadURL(url).then(e => {
-                if (e.code === 'ERR_ABORTED') return;
-                throw e;
+    if (type === WinLoadType.FILE) {
+        win.loadFile(url).then();
+    } else if (type === WinLoadType.URL) {
+        addCookies(win, Configuration);
+        win.webContents.loadURL(url)
+            .catch(e => {
+                console.error(e);
             });
-        }
-    } catch (e) {
-        console.error(e);
     }
 
 }
