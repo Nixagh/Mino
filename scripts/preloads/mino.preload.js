@@ -23,6 +23,14 @@ document.addEventListener('DOMContentLoaded',() => {
         nextChapterBtn = navigationDiv?.children[2];
         cantNextChapterBtn = nextChapterBtn?.tagName.toLowerCase() === 'DIV'.toLowerCase();
 
+        if (cantNextChapterBtn) {
+            // send message to server
+            clearInterval(interval);
+            ipcRenderer.send('read-done', 'read done');
+            interval = setInterval(check, 1000);
+            return;
+        }
+
         if (nextChapterBtn) {
             console.log('Next chapter in', readingTime, 'seconds')
             // clear setIntervals
@@ -34,12 +42,6 @@ document.addEventListener('DOMContentLoaded',() => {
                 // restart interval
                 interval = setInterval(check, 1000);
             }, readingTime * 1000);
-            return;
-        }
-
-        if (cantNextChapterBtn) {
-            // send message to server
-            ipcRenderer.send('read-done', 'read done');
         }
     };
 
